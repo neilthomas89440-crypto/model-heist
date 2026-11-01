@@ -1,0 +1,38 @@
+name: smoke
+on: [push, pull_request]
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install httpx websockets cryptography
+      - name: every script answers --help
+        run: |
+          set -e
+          for f in skills/model-heist/scripts/*.py skills/autoreg-pools/scripts/*.py; do
+            echo "== $f"
+            python "$f" --help > /dev/null
+          done
+      - name: triage degrades gracefully without capa/floss/yara
+        run: |
+          python skills/model-heist/scripts/triage.py /bin/ls --json | python -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          assert d['target']['sha256'], 'no hash'
+          assert d['target']['kind'] in ('elf','unknown'), d['target']['kind']
+          assert 'verdict' in d and d['verdict']
+          print('triage ok:', d['target']['kind'], d['steps']['entropy'])
+          "
+      - name: intake classifies an ELF
+        run: |
+          python skills/model-heist/scripts/intake.py /bin/ls --json | python -c "
+          import json,sys; d=json.load(sys.stdin); print('intake:', d['classification']); 
+          assert d['classification'] in ('elf','unknown')"
+      - name: scaffold + index
+        run: |
+          python skills/model-heist/scripts/scaffold.py demo --out /tmp/rev
+          python skills/model-heist/scripts/gen_index.py /tmp/rev/demo
+          test -f /tmp/rev/demo/docs/INDEX.md && echo "scaffold ok"
