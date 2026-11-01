@@ -23,8 +23,14 @@ import time
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+
+try:
+    from fastapi import FastAPI, Request
+    from fastapi.responses import JSONResponse, Response, StreamingResponse
+except ImportError:
+    import sys as _sys
+    _sys.stderr.write("pool_gateway.py needs fastapi + uvicorn: pip install fastapi uvicorn\n")
+    raise SystemExit(2)
 
 app = FastAPI(title="pool-gateway")
 STATE: dict[str, Any] = {"accounts": [], "lock": threading.Lock(), "cursor": 0}

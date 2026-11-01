@@ -24,7 +24,16 @@ import re
 import time
 from typing import Any
 
-from mitmproxy import ctx, http
+try:
+    from mitmproxy import ctx, http
+except ImportError:  # a missing addon dependency must not read as a broken script
+    import sys as _sys
+    _sys.stderr.write(
+        "capture.py is a mitmproxy addon, not a standalone script.\n"
+        "  pip install mitmproxy\n"
+        "  mitmdump -s capture.py --set capture_out=artifacts/flows.jsonl -p 8080\n"
+        "(proxy.py does the same job with no mitmproxy dependency.)\n")
+    raise SystemExit(2)
 
 SECRET_HEADERS = {"authorization", "cookie", "set-cookie", "x-api-key",
                   "api-key", "proxy-authorization", "x-auth-token",
