@@ -212,6 +212,29 @@ Rules that follow from it:
   then `decompile <addr>`. If that fails with `provider_unavailable`, the engine is
   not wired — say so instead of analysing by vibes.
 
+## Tooling handoff — before the first deep call
+
+Three things must be true before the first decompile, and this file alone cannot make
+them true:
+
+1. **Know which tools exist.** `python $S/doctor.py` prints the engines that actually
+   respond on this machine (IDA / Ghidra / Kuna / JADX / apktool / rizin / x64dbg /
+   frida / capa / floss / binwalk / tshark). Never assume one; a missing engine changes
+   the route, and a claim about pseudocode you never received is fiction.
+2. **Load the analysis skill.** If `reverse-engineer-anything` (REA) is installed, read
+   `skill://reverse-engineer-anything` once at the start: it carries the semantics this
+   skill depends on — evidence ids, provider quirks, "do not repeat an identical
+   analysis", `binary_session` availability, and which reference to read for which
+   artifact. Do not bulk-read its references; one per artifact class.
+3. **Search before guessing.** `python $S/capability.py "<question>"` ranks the lines of
+   this skill, the project's `PROFILES.md`, and the live `rea` command list. Ask the
+   knowledge base instead of recalling a flag from training.
+
+The same operations reach the model two ways, and both are legitimate: as MCP tools
+(`mcp__rea_*`) when the server is enabled, or as `rea <command> …` in bash when it is
+disabled. They return the same JSON and the same `evidence_id`, so a finding written
+from one is valid for the other.
+
 ## Phase 0 — Frame it
 
 ```text
